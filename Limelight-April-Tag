@@ -1,0 +1,88 @@
+package org.firstinspires.ftc.robotcontroller;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
+import java.util.List;
+
+
+@Autonomous(name = "Drive Until AprilTag 13 Within 5cm")
+public class DriveUntilAprilTagClose extends LinearOpMode {
+
+    private DcMotor FrontRight;
+    private DcMotor FrontLeft;
+    private DcMotor BackRight;
+    private DcMotor BackLeft;
+
+    private VisionPortal visionPortal;
+    private AprilTagProcessor aprilTag;
+
+    @Override
+    public void runOpMode() {
+
+        // Map motors to hardware
+        FrontRight = hardwareMap.get(DcMotor.class, "FrontRight");
+        FrontLeft = hardwareMap.get(DcMotor.class, "FrontLeft");
+        BackRight = hardwareMap.get(DcMotor.class, "BackRight");
+        BackLeft = hardwareMap.get(DcMotor.class, "BackLeft");
+
+        // Optional: reverse motors if needed
+        FrontLeft.setDirection(DcMotor.Direction.REVERSE);
+        BackLeft.setDirection(DcMotor.Direction.REVERSE);
+
+        // Initialize AprilTag detection
+        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
+        visionPortal = VisionPortal.easyCreateWithDefaults(
+                hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
+
+        telemetry.addLine("Ready. Press Play to start.");
+        telemetry.update();
+
+        waitForStart();
+
+        // Start driving forward
+        setDrivePower(0.3); // Moderate speed
+
+        // Loop until we find AprilTag 13 within 5 cm
+        while (opModeIsActive()) {
+            List<AprilTagDetection> detections = aprilTag.getDetections();
+
+            for (AprilTagDetection detection : detections) {
+                if (detection.id == 13 && detection.ftcPose != null) {
+                    double distanceMeters = detection.ftcPose.range; // in meters
+                    telemetry.addData("AprilTag 13 Found", "Distance: %.2f cm", distanceMeters * 100);
+
+                    if (distanceMeters <= 0.05) {
+                        telemetry.addLine("AprilTag 13 is within 5 cm! Stopping.");
+                        stopMotors();
+                        telemetry.update();
+                        return; // Stop the OpMode
+                    }
+                }
+            }
+
+            telemetry.addLine("Searching for AprilTag 13...");
+            telemetry.update();
+        }
+    }
+
+    private void setDrivePower(double power) {
+        FrontRight.setPower(power);
+        FrontLeft.setPower(power);
+        BackRight.setPower(power);
+        BackLeft.setPower(power);
+    }
+
+    private void stopMotors() {
+        FrontRight.setPower(0);
+        FrontLeft.setPower(0);
+        BackRight.setPower(0);
+        BackLeft.setPower(0);
+    }
+}
