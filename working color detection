@@ -1,20 +1,21 @@
-    private String detectColor(double r, double g, double b) {
+private static String detectColor(double r, double g, double b) {
         double sum = r + g + b;
 
-// GREEN: green dominates both red and blue
-        if (g > r * GREEN_DOMINANCE && g > b * GREEN_DOMINANCE) {
+        // GREEN: green dominates both red and blue
+        if (g > r  && g > b && g> 1000) {
             return "GREEN";
         }
 
-// PURPLE: red & blue similar, green suppressed
-        else if ((b > 1900 || (b > 70 && b < 150 && b > g && r < b) || (b > g && b > r))) {
-
+        // PURPLE: red & blue similar, green suppressed
+        else if ((b > 1900 || (b > 70 && b < 150 && b > g && r < b) )) {
             return "PURPLE";
-        } else if (sum < 300 && g < 100 && b < 100 && r < 75) {
-            return "PURPLE 2";
-        } else if (300 < sum && sum < 400 && g < 150 && g>100 && b < 100 && r < 75) {
-            return "GREEN 2" ;
-
         }
+        else if (sum < 300 && g < 100 && b < 100 && r < 75) {
+            return "PURPLE 2";
+        }
+        else if ((200 < sum && sum < 400) && g < 200 && g > 100 && b <= 130 && r < 75) {
+            return "GREEN 2";
+        }
+
         return "UNKNOWN";
     }
